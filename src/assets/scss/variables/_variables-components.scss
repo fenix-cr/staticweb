@@ -1,0 +1,30 @@
+//  ================================================================================================
+//  ? TIP:  It is recommended to use this file for overriding component variables.
+//  ================================================================================================
+$primary-color: #332B7B;
+
+
+.colors-login {
+  color: $primary-color !important;
+}
+
+
+.sigin {
+  background-color: $primary-color !important;
+}
+
+.form-login {
+  border-radius: 10px;
+  padding: 40px;
+  box-shadow: 0 1px 14px -3px #332b7b;
+}
+
+.formcreatepatient {
+  box-shadow: 0  0 5px 1px #7367f07a;
+  border-radius: 7px;
+}
+.opcorporate, .optrips, .opbooking {
+  display: flex;
+  justify-content: center;
+  gap: 35px;
+}

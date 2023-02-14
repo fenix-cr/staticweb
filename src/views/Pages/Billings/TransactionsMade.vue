@@ -1,0 +1,251 @@
+<template>
+  <div>
+    <!-- Table Container Card -->
+    <b-card no-body class="mb-0">
+
+      <div class="m-2">
+
+        <!-- Table Top -->
+        <b-row>
+
+          <!-- Per Page -->
+          <b-col cols="12" md="6" class="d-flex align-items-center justify-content-start mb-1 mb-md-0">
+            <label>Show</label>
+            <b-form-select v-model="perPage" :options="pageOptions" id="perPageSelect"
+              class="per-page-selector d-inline-block mx-50" />
+            <label>entries</label>
+          </b-col>
+
+          <!-- Search -->
+          <b-col cols="12" md="6">
+            <div class="d-flex align-items-center justify-content-end">
+              <b-form-input v-model="searchQuery" class="d-inline-block mr-1" placeholder="Search..." />
+            </div>
+          </b-col>
+        </b-row>
+
+      </div>
+
+      <b-table ref="refUserListTable" class="position-relative pb-2 mb-0" responsive primary-key="id"
+        :items="listClients" empty-text="No reservations found" show-empty :fields="fields" :filter="searchQuery"
+        :perPage="perPage" id="my-table" :current-page="currentPage">
+
+        <template #cell(name)="{ item }">
+          <span>
+            {{ item.billing_details.name }}
+          </span>
+        </template>
+
+
+        <template #cell(email)="{ item }">
+          <span>
+            {{ item.billing_details.email }}
+          </span>
+        </template>
+
+
+        <template #cell(phone)="{ item }">
+          <span>
+            {{ item.billing_details.phone }}
+          </span>
+        </template>
+
+
+        <template #cell(card)="{ item }">
+          <span>
+            {{ item.payment_method_details.card.brand }}
+          </span>
+        </template>
+
+
+        <template #cell(amount)="{ item }">
+          <span>
+            {{ item.amount + ' ' + item.currency }}
+          </span>
+        </template>
+
+        <template #cell(status)="{ item }">
+          <span>
+            <b-badge variant="success">
+              {{ item.outcome.seller_message }}
+            </b-badge>
+
+          </span>
+        </template>
+
+
+        <!-- Column: Actions -->
+        <template #cell(actions)="{ item }">
+          <b-dropdown variant="link" no-caret :right="$store.state.appConfig.isRTL" transition="scale-transition"
+            :offset-y="true">
+            <template #button-content>
+              <feather-icon icon="MoreVerticalIcon" size="16" class="align-middle text-body" />
+            </template>
+            <template style="padding: 0" v-slot:activator="{ on, attrs }">
+              <b-btn color="primary" v-bind="attrs" v-on="on" icon ripple>
+              </b-btn>
+            </template>
+            <b-list-group style="padding: 2px; margin-bottom: 2px" dense rounded>
+              <router-link class="urlPagina" :to="{ name: 'TransactionsMade details', params: { id: item.id } }">
+                <b-list-group-item style="padding: 0" class="urlPagina" :ripple="false">
+                  <b-list-group-item class="font-weight-bold" style="border: none; padding: 5px; color: #7367f0">
+                    <feather-icon icon="FileTextIcon" />
+                    Details
+                  </b-list-group-item>
+                </b-list-group-item>
+              </router-link>
+            </b-list-group>
+          </b-dropdown>
+        </template>
+
+      </b-table>
+      <div class="mx-2 mb-2">
+        <b-row>
+          <b-col cols="12" sm="6" class="d-flex align-items-center justify-content-center justify-content-sm-start">
+            <span class="text-muted">Showing {{ perPage }} of {{
+            listClients.length
+            }} entries</span>
+          </b-col>
+          <!-- Pagination -->
+          <b-col cols="12" sm="6" class="d-flex align-items-center justify-content-center justify-content-sm-end">
+            <b-pagination :per-page="perPage" v-model="currentPage" :total-rows="rows" first-number last-number
+              class="mb-0 mt-1 mt-sm-0" prev-class="prev-item" next-class="next-item" aria-controls="my-table">
+              <template #prev-text>
+                <feather-icon icon="ChevronLeftIcon" size="18" />
+              </template>
+              <template #next-text>
+                <feather-icon icon="ChevronRightIcon" size="18" />
+              </template>
+            </b-pagination>
+          </b-col>
+        </b-row>
+      </div>
+    </b-card>
+  </div>
+</template>
+
+<script>
+import {
+  BCard, BRow, BCol, BFormInput, BButton, BTable, BMedia, BAvatar, BLink,
+  BBadge, BDropdown, BDropdownItem, BPagination, BListGroup, BListGroupItem,
+  BFormSelect,
+} from 'bootstrap-vue'
+import vSelect from 'vue-select'
+
+import UserListAddNew from '@core/components/infoClients/UserListAddNew'
+import { jsPDF } from "jspdf";
+
+
+export default {
+  name: "TransactionsMade",
+  components: {
+    UserListAddNew,
+    BCard,
+    BRow,
+    BCol,
+    BFormInput,
+    BButton,
+    BTable,
+    BMedia,
+    BAvatar,
+    BLink,
+    BBadge,
+    BDropdown,
+    BDropdownItem,
+    BPagination,
+    BListGroup,
+    BListGroupItem,
+    BFormSelect,
+    vSelect,
+  },
+  data() {
+    return {
+      listClients: [],
+      precioviaje: '$50',
+      perPage: 5,
+      pageOptions: [3, 5, 10],
+      currentPage: 1,
+      totalUsers: 0,
+      valortotal: 0,
+      searchQuery: '',
+      fields: ['name', 'email', 'phone', 'card', 'amount', 'description', 'status', 'actions'],
+    }
+  },
+  methods: {
+    getClientes() {
+      this.$swal({
+        title: 'Please, wait...',
+        didOpen: () => {
+          this.$swal.showLoading()
+        },
+      })
+      this.$http.get(`admin/panel/charges/all`).then((response) => {
+        this.listClients = response.data.data;
+        this.valortotal = this.listClients.length;
+        this.totalUsers = this.valortotal;
+        this.$swal.close();
+        console.log(this.listClients)
+      }).catch((res) => console.log(res.data))
+    },
+  },
+  computed: {
+    rows() {
+      return this.listClients.length
+    }
+  },
+  mounted() {
+    this.getClientes();
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.per-page-selector {
+  width: 90px;
+}
+
+.urlPagina {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.urlPagina:hover {
+  background: linear-gradient(118deg, #7367f0, rgba(115, 103, 240, 0.7)) !important;
+  color: #fff;
+}
+
+.list-group-item:hover {
+  background: linear-gradient(118deg, #7367f0, rgba(115, 103, 240, 0.7)) !important;
+  color: #fff !important;
+}
+
+.urlPagina::before {
+  background-color: currentColor !important;
+  bottom: 0;
+  content: "";
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  -webkit-transition: 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+  transition: 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+}
+
+.box {
+  box-shadow: 0px 14px 20px 0px rgba(143, 143, 143, 0.2) !important;
+}
+
+.colorpago {
+  color: #28c76f;
+}
+
+.colornopago {
+  color: rgba(253, 1, 1, 0.9);
+}
+</style>
+
+<style lang="scss">
+@import '@core/scss/vue/libs/vue-select.scss';
+</style>
