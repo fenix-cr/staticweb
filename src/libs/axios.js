@@ -4,8 +4,8 @@ import Vue from 'vue'
 import axios from 'axios'
 
 const axiosIns = axios.create({
- //baseURL: 'https://ameraapi.vnddev.com/public/api/v1/'
-baseURL: 'http://127.0.0.1:8000/api/v1/'
+ baseURL: 'https://ameraapi.vnddev.com/public/api/v1/'
+//baseURL: 'http://127.0.0.1:8000/api/v1/'
  //  baseURL: 'https://api.myamera.com/api/v1/'
 })
 
